@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2h6v2h-6V6zm0 4h6v2h-6v-2zM4 6h6v8H4V6zm0 10h16v2H4v-2z'/%3E%3C/svg%3E">
+	<title>邮件通知服务 · API文档 & 测试工具</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			background: #f8fafc;
+			font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+			line-height: 1.5;
+			color: #0f172a;
+			padding: 2rem 1.5rem;
+		}
+
+		.container {
+			max-width: 1400px;
+			margin: 0 auto;
+			display: flex;
+			flex-direction: column;
+			gap: 2rem;
+		}
+
+		/* 头部 */
+		.header {
+			text-align: center;
+			margin-bottom: 0.5rem;
+		}
+
+		.header h1 {
+			font-size: 2.2rem;
+			font-weight: 700;
+			background: linear-gradient(135deg, #1e293b, #3b82f6);
+			background-clip: text;
+			-webkit-background-clip: text;
+			color: transparent;
+			letter-spacing: -0.01em;
+		}
+
+		.header p {
+			color: #475569;
+			margin-top: 0.5rem;
+			font-size: 1rem;
+		}
+
+		.badge {
+			display: inline-block;
+			background: #e2e8f0;
+			padding: 0.2rem 0.7rem;
+			border-radius: 20px;
+			font-size: 0.8rem;
+			font-family: monospace;
+			color: #1e293b;
+			margin-top: 0.75rem;
+		}
+
+		/* 双栏布局 (大屏) */
+		.docs-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+		}
+
+		@media (max-width: 900px) {
+			.docs-grid {
+				grid-template-columns: 1fr;
+				gap: 1.8rem;
+			}
+
+			body {
+				padding: 1rem;
+			}
+		}
+
+		/* 卡片通用样式 */
+		.card {
+			background: white;
+			border-radius: 1.5rem;
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.05);
+			overflow: hidden;
+			border: 1px solid #e9eef3;
+			transition: box-shadow 0.2s;
+		}
+
+		.card:hover {
+			box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
+		}
+
+		.card-header {
+			padding: 1.25rem 1.8rem;
+			background: #ffffff;
+			border-bottom: 1px solid #eff3f8;
+		}
+
+		.card-header h2 {
+			font-size: 1.5rem;
+			font-weight: 600;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.card-header h2 svg {
+			width: 1.6rem;
+			height: 1.6rem;
+			stroke-width: 1.7;
+			color: #3b82f6;
+		}
+
+		.card-body {
+			padding: 1.8rem;
+		}
+
+		/* 表格样式 */
+		.param-table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 0.9rem;
+		}
+
+		.param-table th,
+		.param-table td {
+			text-align: left;
+			padding: 0.75rem 0.5rem;
+			border-bottom: 1px solid #edf2f7;
+			vertical-align: top;
+		}
+
+		.param-table th {
+			font-weight: 600;
+			color: #1e293b;
+			width: 22%;
+			background-color: #fafcff;
+		}
+
+		.param-table code {
+			background: #f1f5f9;
+			padding: 0.2rem 0.4rem;
+			border-radius: 8px;
+			font-size: 0.8rem;
+			font-family: 'JetBrains Mono', 'SF Mono', monospace;
+		}
+
+		.required {
+			color: #e11d48;
+			font-weight: 500;
+			/* margin-left: 0.3rem; */
+			/* font-size: 0.7rem; */
+		}
+
+		.type-badge {
+			background: #eef2ff;
+			color: #1e40af;
+			border-radius: 20px;
+			padding: 0.2rem 0.6rem;
+			font-size: 0.7rem;
+			font-weight: 500;
+			display: inline-block;
+		}
+
+		pre {
+			background: #0f172a;
+			color: #e2e8f0;
+			padding: 1rem;
+			border-radius: 1rem;
+			overflow-x: auto;
+			font-size: 0.8rem;
+			font-family: 'JetBrains Mono', monospace;
+			margin: 1rem 0;
+		}
+
+		code {
+			font-family: monospace;
+		}
+
+		.inline-code {
+			background: #eef2ff;
+			padding: 0.2rem 0.4rem;
+			border-radius: 6px;
+			font-size: 0.85rem;
+		}
+
+		/* 测试表单 */
+		.form-group {
+			margin-bottom: 1.3rem;
+		}
+
+		label {
+			display: block;
+			font-weight: 600;
+			margin-bottom: 0.4rem;
+			font-size: 0.85rem;
+			color: #0f172a;
+		}
+
+		label .optional {
+			font-weight: normal;
+			color: #64748b;
+			font-size: 0.75rem;
+		}
+
+		input,
+		select,
+		textarea {
+			width: 100%;
+			padding: 0.7rem 0.9rem;
+			border: 1px solid #cbd5e1;
+			border-radius: 14px;
+			font-size: 0.9rem;
+			background: white;
+			transition: 0.2s;
+			font-family: inherit;
+		}
+
+		input:focus,
+		select:focus,
+		textarea:focus {
+			outline: none;
+			border-color: #3b82f6;
+			box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+		}
+
+		textarea {
+			min-height: 100px;
+			resize: vertical;
+		}
+
+		.hint {
+			font-size: 0.7rem;
+			color: #5b6e8c;
+			margin-top: 0.3rem;
+		}
+
+		button {
+			background: #1e293b;
+			color: white;
+			border: none;
+			padding: 0.75rem 1.5rem;
+			border-radius: 40px;
+			font-weight: 600;
+			font-size: 0.9rem;
+			cursor: pointer;
+			transition: all 0.2s;
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		button.primary {
+			background: #3b82f6;
+			box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+		}
+
+		button.primary:hover {
+			background: #2563eb;
+			transform: translateY(-1px);
+		}
+
+		.result-area {
+			margin-top: 1.5rem;
+			background: #f1f5f9;
+			border-radius: 1rem;
+			padding: 1rem;
+			border-left: 4px solid #3b82f6;
+		}
+
+		.result-title {
+			font-weight: 600;
+			margin-bottom: 0.5rem;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			color: #334155;
+		}
+
+		.response-json {
+			background: #0f172a;
+			color: #e2e8f0;
+			padding: 0.8rem;
+			border-radius: 12px;
+			font-family: monospace;
+			font-size: 0.8rem;
+			overflow-x: auto;
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
+
+		.error-text {
+			color: #dc2626;
+		}
+
+		.flex-buttons {
+			display: flex;
+			gap: 1rem;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			margin-top: 0.5rem;
+		}
+
+		hr {
+			margin: 1rem 0;
+			border: none;
+			border-top: 1px solid #e2e8f0;
+		}
+
+		footer {
+			text-align: center;
+			font-size: 0.75rem;
+			color: #6c7a91;
+			margin-top: 2rem;
+			padding-top: 1rem;
+			border-top: 1px solid #e2e8f0;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>📧 邮件通知服务</h1>
+			<p>基于 Resend 的轻量邮件接口 · 支持纯文本 / HTML · 可携带抄送密送</p>
+			<div class="badge">POST /send | Base URL: https://mailnotify.mnizjc.qzz.io</div>
+		</div>
+
+		<div class="docs-grid">
+			<!-- 左侧：文档区域 -->
+			<div class="card">
+				<div class="card-header">
+					<h2>📖 API 参考文档</h2>
+				</div>
+				<div class="card-body">
+					<p><strong>🔹 固定发件地址</strong>：所有邮件均通过 <code class="inline-code">notification@mnizjc.qzz.io</code>
+						发送。<br>
+						参数 <code class="inline-code">from</code> 仅用于自定义显示名称，最终发件人格式为：<strong>"显示名称
+							&lt;notification@mnizjc.qzz.io&gt;"</strong>。</p>
+
+					<h3 style="margin: 1.5rem 0 0.5rem 0;">📬 请求参数</h3>
+					<table class="param-table">
+						<thead>
+							<tr>
+								<th>参数</th>
+								<th>类型</th>
+								<th>必填</th>
+								<th>说明</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>from</code></td>
+								<td>string</td>
+								<td><span class="required">是</span></td>
+								<td>发件人显示名称（例如“系统通知”）。</td>
+							</tr>
+							<tr>
+								<td><code>to</code></td>
+								<td>string / string[]</td>
+								<td><span class="required">是</span></td>
+								<td>收件人邮箱，支持单个字符串或数组（多个邮箱）。</td>
+							</tr>
+							<tr>
+								<td><code>subject</code></td>
+								<td>string</td>
+								<td><span class="required">是</span></td>
+								<td>邮件主题。</td>
+							</tr>
+							<tr>
+								<td><code>text</code></td>
+								<td>string</td>
+								<td><span class="required">是</span></td>
+								<td>邮件正文。若 <code>content_type=text/html</code> 则视为HTML。</td>
+							</tr>
+							<tr>
+								<td><code>content_type</code></td>
+								<td>string</td>
+								<td>否</td>
+								<td><code>text/plain</code>（默认）或 <code>text/html</code>。</td>
+							</tr>
+							<tr>
+								<td><code>cc</code></td>
+								<td>string / string[]</td>
+								<td>否</td>
+								<td>抄送邮箱（格式同 <code>to</code>）。</td>
+							</tr>
+							<tr>
+								<td><code>bcc</code></td>
+								<td>string / string[]</td>
+								<td>否</td>
+								<td>密送邮箱（格式同 <code>to</code>）。</td>
+							</tr>
+						</tbody>
+					</table>
+					<h3 style="margin: 1.5rem 0 0.5rem 0;">🔐 认证方式</h3>
+					<p>本接口要求使用 <strong>Bearer Token</strong> 认证。请在请求头中添加：</p>
+					<pre>Authorization: Bearer &lt;your-api-token&gt;</pre>
+					<p>若未提供或 Token 无效，将返回 <code>401 Unauthorized</code>。请联系管理员获取 Token。</p>
+					<h3 style="margin: 1.5rem 0 0.5rem 0;">✅ 邮箱格式规则</h3>
+					<p>采用严格正则 <code>/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/</code><br>
+						示例合法邮箱: <code>user@example.com</code> , <code>team@company.co.uk</code><br>
+						非法: <code>user@.com</code> , <code>name@domain</code> , <code>@missing.com</code></p>
+
+					<h3 style="margin: 1.5rem 0 0.5rem 0;">📮 响应示例</h3>
+					<pre>// 成功
+{
+  "send_id": "abc123-4567-8900-defg-1234567890ab"
+}
+
+// 失败（参数错误）
+{
+  "error": "\"to\" must be valid emails: invalid-email"
+}</pre>
+
+					<h3 style="margin: 1rem 0 0.5rem 0;">🔨 cURL 示例</h3>
+					<pre>curl -X POST https://mailnotify.mnizjc.qzz.io/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "运维团队",
+    "to": ["admin@example.com"],
+    "subject": "部署通知",
+    "text": "&lt;h1&gt;Success&lt;/h1&gt;&lt;p&gt;版本已上线&lt;/p&gt;",
+    "content_type": "text/html"
+  }'</pre>
+
+					<h3 style="margin: 1rem 0 0.5rem 0;">⚠️ 错误码</h3>
+					<ul style="margin-left: 1.2rem; color: #334155;">
+						<li><strong>415</strong> – 不支持的 Content-Type（仅支持 JSON / form-urlencoded / multipart）</li>
+						<li><strong>200 + error字段</strong> – 业务错误（邮箱格式无效、缺少必填字段）</li>
+						<li><strong>Resend服务错误</strong> – 响应中包含 error.message</li>
+					</ul>
+					<p class="hint" style="margin-top: 0.8rem;">※ 接口同时支持 <code>application/json</code> 与表单提交
+						(urlencoded/multipart)，数组字段使用多个同名参数。</p>
+				</div>
+			</div>
+
+			<!-- 右侧：交互式测试工具 -->
+			<div class="card">
+				<div class="card-header">
+					<h2>🧪 在线测试工具</h2>
+				</div>
+				<div class="card-body">
+					<form id="testMailForm">
+						<!-- 在表单中增加 -->
+						<div class="form-group">
+							<label>API Token <span class="required">*</span></label>
+							<input type="password" id="apiToken" placeholder="请输入 Bearer Token" value="">
+							<div class="hint">联系管理员获取。请求时将自动添加到 <code>Authorization: Bearer &lt;token&gt;</code></div>
+						</div>
+
+						<div class="form-group">
+							<label>发件人名称 <span class="required">*</span></label>
+							<input type="text" id="fromName" placeholder="例如：系统通知 / 告警机器人" value="通知助手">
+							<div class="hint">实际发件邮箱为 notification@mnizjc.qzz.io，此处仅修改显示名。</div>
+						</div>
+
+						<div class="form-group">
+							<label>收件人 (to) <span class="required">*</span> <span
+									class="optional">支持多个邮箱，用英文逗号分隔</span></label>
+							<input type="text" id="toEmails" placeholder="user1@example.com, user2@example.com"
+								value="test@resend.dev">
+							<div class="hint">单个邮箱直接填写；多个邮箱请用 <code>,</code> 分隔，系统自动转为数组。</div>
+						</div>
+
+						<div class="form-group">
+							<label>主题 (subject) <span class="required">*</span></label>
+							<input type="text" id="subject" placeholder="邮件主题" value="API 测试邮件 | 来自Cloudflare Worker">
+						</div>
+
+						<div class="form-group">
+							<label>正文 (text) <span class="required">*</span></label>
+							<textarea id="bodyText"
+								placeholder="邮件内容，支持纯文本或HTML (根据下方格式选择)">你好！这是一封通过邮件通知服务发送的测试邮件 🎉</textarea>
+						</div>
+
+						<!-- <div class="form-group">
+							<label>正文格式 (content_type)</label>
+							<select id="contentType">
+								<option value="text/plain">纯文本 (text/plain)</option>
+								<option value="text/html">HTML富文本 (text/html)</option>
+							</select>
+							<div class="hint">若选择HTML，正文将作为HTML代码渲染。</div>
+						</div> -->
+						<div class="form-group">
+							<label for="contentType">正文格式 (content_type)</label>
+							<select id="contentType">
+								<option value="text/plain">纯文本 (text/plain)</option>
+								<option value="text/html">HTML富文本 (text/html)</option>
+							</select>
+							<div class="hint" id="contentTypeHint">若选择HTML，正文将作为HTML代码渲染。</div>
+						</div>
+
+						<div class="form-group">
+							<label>抄送 (cc) <span class="optional">可选，多个邮箱用逗号分隔</span></label>
+							<input type="text" id="ccEmails" placeholder="manager@example.com, record@example.com">
+						</div>
+
+						<div class="form-group">
+							<label>密送 (bcc) <span class="optional">可选，多个邮箱用逗号分隔</span></label>
+							<input type="text" id="bccEmails" placeholder="audit@example.com">
+						</div>
+
+						<div class="flex-buttons">
+							<button type="submit" class="primary" id="sendBtn">✈️ 发送邮件</button>
+							<button type="button" id="clearFormBtn">🗑️ 清空表单</button>
+							<button type="button" id="fillExampleBtn">📋 填充示例数据</button>
+						</div>
+					</form>
+
+					<div class="result-area" id="resultArea" style="display: none;">
+						<div class="result-title">📬 响应结果</div>
+						<pre class="response-json" id="responseJson">等待请求...</pre>
+					</div>
+					<div id="validationError" class="error-text" style="margin-top: 1rem; font-size:0.85rem;"></div>
+				</div>
+			</div>
+		</div>
+		<footer>
+			⚡ 邮件发送由 Resend 驱动 · 本接口部署于 Cloudflare Workers
+		</footer>
+	</div>
+
+	<script>
+		// 与后端保持严格一致的邮箱正则（本地无空格/@, 域名至少两段且顶级域至少2字符）
+		const EMAIL_REGEX = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+
+		// 解析逗号分隔字符串为邮箱数组（trim后过滤空串）
+		function parseEmailList(inputStr) {
+			if (!inputStr || typeof inputStr !== 'string') return [];
+			return inputStr.split(',')
+				.map(s => s.trim())
+				.filter(s => s !== '');
+		}
+
+		// 单个邮箱校验
+		function isValidEmail(email) {
+			return EMAIL_REGEX.test(email);
+		}
+
+		// 批量校验并返回无效列表
+		function validateEmailList(emailsArray) {
+			if (!emailsArray.length) return { valid: true, invalid: [] };
+			const invalid = emailsArray.filter(email => !isValidEmail(email));
+			return { valid: invalid.length === 0, invalid };
+		}
+
+		// 格式化值：如果数组长度为0返回undefined，长度为1返回字符串，大于1返回数组（后端均支持，但最严谨）
+		function formatRecipient(emailsArray) {
+			if (!emailsArray || emailsArray.length === 0) return undefined;
+			if (emailsArray.length === 1) return emailsArray[0];
+			return emailsArray;
+		}
+
+		// 显示结果
+		function showResult(success, data, errorMsg = null) {
+			const resultDiv = document.getElementById('resultArea');
+			const responsePre = document.getElementById('responseJson');
+			resultDiv.style.display = 'block';
+			if (success) {
+				responsePre.innerHTML = JSON.stringify(data, null, 2);
+				responsePre.style.borderLeftColor = '#10b981';
+			} else {
+				const errorObj = { error: errorMsg || data?.error || '请求失败，请检查网络或参数' };
+				responsePre.innerHTML = JSON.stringify(errorObj, null, 2);
+				responsePre.style.borderLeftColor = '#dc2626';
+			}
+			// 平滑滚动到结果区
+			resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+
+		// 清除错误展示
+		function clearError() {
+			document.getElementById('validationError').innerHTML = '';
+		}
+
+		function setError(message) {
+			document.getElementById('validationError').innerHTML = message;
+		}
+
+		// 发送逻辑
+		async function sendEmail() {
+			const apiToken = document.getElementById('apiToken').value.trim();
+			if (!apiToken) {
+				setError('❌ 请填写 API Token');
+				return;
+			}
+			clearError();
+			const sendBtn = document.getElementById('sendBtn');
+			const originalText = sendBtn.innerHTML;
+			sendBtn.disabled = true;
+			sendBtn.innerHTML = '⏳ 发送中...';
+
+			try {
+				// 获取表单值
+				const fromName = document.getElementById('fromName').value.trim();
+				const toRaw = document.getElementById('toEmails').value.trim();
+				const subject = document.getElementById('subject').value.trim();
+				const text = document.getElementById('bodyText').value;
+				const contentType = document.getElementById('contentType').value;
+				const ccRaw = document.getElementById('ccEmails').value.trim();
+				const bccRaw = document.getElementById('bccEmails').value.trim();
+
+				// 必填校验
+				if (!fromName) {
+					setError('❌ 请填写发件人名称 (from)');
+					showResult(false, null, '缺少必要参数: from');
+					sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+					return;
+				}
+				if (!toRaw) {
+					setError('❌ 收件人 (to) 不能为空');
+					showResult(false, null, '收件人不能为空');
+					sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+					return;
+				}
+				if (!subject) {
+					setError('❌ 邮件主题 (subject) 不能为空');
+					showResult(false, null, '主题不能为空');
+					sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+					return;
+				}
+				if (!text) {
+					setError('❌ 正文 (text) 不能为空');
+					showResult(false, null, '正文不能为空');
+					sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+					return;
+				}
+
+				// 解析邮箱列表
+				const toList = parseEmailList(toRaw);
+				if (toList.length === 0) {
+					setError('❌ 收件人列表无效，至少提供一个有效邮箱地址');
+					showResult(false, null, 'to邮箱列表为空');
+					sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+					return;
+				}
+
+				// 验证所有邮箱格式
+				const toValidation = validateEmailList(toList);
+				if (!toValidation.valid) {
+					setError(`❌ 收件人邮箱格式错误: ${toValidation.invalid.join(', ')}`);
+					showResult(false, null, `invalid emails: ${toValidation.invalid.join(',')}`);
+					sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+					return;
+				}
+
+				let ccList = [], ccFormatted = undefined;
+				if (ccRaw) {
+					ccList = parseEmailList(ccRaw);
+					if (ccList.length) {
+						const ccValid = validateEmailList(ccList);
+						if (!ccValid.valid) {
+							setError(`❌ 抄送邮箱格式错误: ${ccValid.invalid.join(', ')}`);
+							showResult(false, null, `cc invalid: ${ccValid.invalid.join(',')}`);
+							sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+							return;
+						}
+						ccFormatted = formatRecipient(ccList);
+					}
+				}
+
+				let bccList = [], bccFormatted = undefined;
+				if (bccRaw) {
+					bccList = parseEmailList(bccRaw);
+					if (bccList.length) {
+						const bccValid = validateEmailList(bccList);
+						if (!bccValid.valid) {
+							setError(`❌ 密送邮箱格式错误: ${bccValid.invalid.join(', ')}`);
+							showResult(false, null, `bcc invalid: ${bccValid.invalid.join(',')}`);
+							sendBtn.disabled = false; sendBtn.innerHTML = originalText;
+							return;
+						}
+						bccFormatted = formatRecipient(bccList);
+					}
+				}
+
+				// 构造请求体 JSON (后端完全支持)
+				const payload = {
+					from: fromName,
+					to: formatRecipient(toList),   // 自动适配 string 或 array
+					subject: subject,
+					text: text,
+					content_type: contentType,
+				};
+				if (ccFormatted) payload.cc = ccFormatted;
+				if (bccFormatted) payload.bcc = bccFormatted;
+
+				// 发起请求
+				const response = await fetch('/send', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${apiToken}`
+					},
+					body: JSON.stringify(payload)
+				});
+
+				let responseData;
+				const contentTypeResp = response.headers.get('content-type');
+				if (contentTypeResp && contentTypeResp.includes('application/json')) {
+					responseData = await response.json();
+				} else {
+					const rawText = await response.text();
+					responseData = { error: `Unexpected response: ${rawText.substring(0, 100)}` };
+				}
+
+				// 处理业务错误（状态200但有error字段, 或者HTTP 非2xx）
+				if (response.ok && !responseData.error) {
+					// 成功
+					showResult(true, { send_id: responseData.send_id, status: 'success' });
+					setError('');
+				} else {
+					const errMsg = responseData.error || `HTTP ${response.status}`;
+					showResult(false, responseData, errMsg);
+					setError(`⚠️ 发送失败: ${errMsg}`);
+				}
+			} catch (err) {
+				console.error(err);
+				setError(`网络错误: ${err.message}`);
+				showResult(false, null, err.message || '请求异常');
+			} finally {
+				sendBtn.disabled = false;
+				sendBtn.innerHTML = originalText;
+			}
+		}
+
+		// 清空表单（保留部分演示占位？完全清空）
+		function clearForm() {
+			document.getElementById('fromName').value = '';
+			document.getElementById('toEmails').value = '';
+			document.getElementById('subject').value = '';
+			document.getElementById('bodyText').value = '';
+			document.getElementById('contentType').value = 'text/plain';
+			document.getElementById('ccEmails').value = '';
+			document.getElementById('bccEmails').value = '';
+			document.getElementById('resultArea').style.display = 'none';
+			clearError();
+		}
+
+		// 填充一组合理的测试数据
+		function fillExample() {
+			document.getElementById('fromName').value = '通知服务测试';
+			document.getElementById('toEmails').value = 'test@resend.dev';
+			document.getElementById('subject').value = '【测试】服务运行正常 - ' + new Date().toLocaleString();
+			document.getElementById('bodyText').value = '<h2>✅ 邮件通知服务测试</h2><p>如果您收到此邮件，说明接口已正确配置。</p><p>时间戳: ' + new Date().toISOString() + '</p>';
+			document.getElementById('contentType').value = 'text/html';
+			document.getElementById('ccEmails').value = '';
+			document.getElementById('bccEmails').value = '';
+			clearError();
+			const resultDiv = document.getElementById('resultArea');
+			if (resultDiv) resultDiv.style.display = 'none';
+			// 给个小提示
+			setError('');
+			const hintMsg = document.createElement('small');
+		}
+
+		// 绑定事件
+		document.getElementById('testMailForm').addEventListener('submit', (e) => {
+			e.preventDefault();
+			sendEmail();
+		});
+		document.getElementById('clearFormBtn').addEventListener('click', clearForm);
+		document.getElementById('fillExampleBtn').addEventListener('click', fillExample);
+
+		// 初始隐藏结果区
+		document.getElementById('resultArea').style.display = 'none';
+		// 小提示：默认预填一个方便测试的例子但不自动发送
+		if (!document.getElementById('toEmails').value) {
+			// 如果完全没有值，可预填一个示例，但上面已有test@resend.dev，无需额外干预
+		}
+	</script>
+</body>
+
+</html>
